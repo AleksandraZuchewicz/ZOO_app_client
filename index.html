@@ -35,7 +35,14 @@
           <zoo-box v-bind:data="animalData"></zoo-box>
         </div>
         <div class="col-sm-12 col-md-3 text-center">
-          <zoo-box v-bind:data="foodData"></zoo-box>
+          <zoo-box
+            v-bind:data="foodData"
+            v-if="employeeData.currentEmployee.role == 'Feeder' || !employeeData.currentEmployee.role"
+          ></zoo-box>
+          <zoo-box
+            v-bind:data="trickData"
+            v-if="employeeData.currentEmployee.role == 'Trainer'"
+          ></zoo-box>
         </div>
       </div>
       <div class="row">

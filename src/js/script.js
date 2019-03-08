@@ -16,6 +16,10 @@ class ZOO {
     this.employees = [];
     this.events = [];
     this.foods = ["Banana", "Grapes", "Pork", "Chicken"];
+    this.tricks = ["Hop", "Clap", "Sit"];
+  }
+  getTricks() {
+    return this.tricks;
   }
   getFoods() {
     return this.foods;
@@ -140,6 +144,26 @@ class ZOO {
       indexOfCurrentFood - 1 != -1 ? indexOfCurrentFood - 1 : foods.length - 1;
     return foods[nextFoodIndex];
   }
+  getNextTrick(currentTrick) {
+    const tricks = this.getTricks();
+    let indexOfCurrentTrick = this.getTricks().findIndex(
+      trick => trick == currentTrick
+    );
+    let nextTrickIndex =
+      indexOfCurrentTrick + 1 != tricks.length ? indexOfCurrentTrick + 1 : 0;
+    return tricks[nextTrickIndex];
+  }
+  getPreviousTrick(currentTrick) {
+    const tricks = this.getTricks();
+    let indexOfCurrentTrick = this.getTricks().findIndex(
+      trick => trick == currentTrick
+    );
+    let nextTrickIndex =
+      indexOfCurrentTrick - 1 != -1
+        ? indexOfCurrentTrick - 1
+        : tricks.length - 1;
+    return tricks[nextTrickIndex];
+  }
 }
 let zooBox = Vue.component("zoo-box", {
   props: ["data"],
@@ -149,6 +173,12 @@ let zooBox = Vue.component("zoo-box", {
     <div><i class="arrow left" v-on:click="previousElement"></i> <img :src="data.imgSources[getCurrentClass()]" /> <i class="arrow right" v-on:click="nextElement"></i> </div>
     <div><span>{{ getCurrentName() }}</span></div>
     <div><span>{{ getCurrentClass() }}</span></div>
+    <div><span v-if="data.title=='Animals'">Hunger: {{ data.currentAnimal.hunger }}</span></div>
+    <div><button v-if="data.title=='Employees' && getCurrentClass()=='Trainer'" v-on:click="trainAnimal" class="btn btn-primary">Train</button></div>
+    <div><button v-if="data.title=='Employees' && getCurrentClass()=='Feeder'" v-on:click="feedAnimal" class="btn btn-primary">Feed</button></div>
+    <div><button v-if="data.title=='Animals' && data.currentAnimal.tricks && data.currentAnimal.tricks.includes('hop')" v-on:click="doHop" class="btn btn-primary">Hop</button></div>
+    <div><button v-if="data.title=='Animals' && data.currentAnimal.tricks && data.currentAnimal.tricks.includes('clap')" v-on:click="doClap" class="btn btn-primary">Clap</button></div>
+    <div><button v-if="data.title=='Animals' && data.currentAnimal.tricks && data.currentAnimal.tricks.includes('sit')" v-on:click="doSit" class="btn btn-primary">Sit</button></div>
     <br />
     </div>
     `,
@@ -162,6 +192,9 @@ let zooBox = Vue.component("zoo-box", {
           return this.data.currentAnimal.name;
           break;
         case "Foods":
+          return "";
+          break;
+        case "Tricks":
           return "";
           break;
         default:
@@ -178,6 +211,9 @@ let zooBox = Vue.component("zoo-box", {
         case "Foods":
           return this.data.currentFood;
           break;
+        case "Tricks":
+          return this.data.currentTrick;
+          break;
         default:
       }
     },
@@ -191,6 +227,9 @@ let zooBox = Vue.component("zoo-box", {
           break;
         case "Foods":
           this.$root.switchToPreviousFood();
+          break;
+        case "Tricks":
+          this.$root.switchToPreviousTrick();
           break;
         default:
       }
@@ -206,8 +245,47 @@ let zooBox = Vue.component("zoo-box", {
         case "Foods":
           this.$root.switchToNextFood();
           break;
+        case "Tricks":
+          this.$root.switchToNextTrick();
+          break;
         default:
       }
+    },
+    feedAnimal: async function(event) {
+      const employee = this.$root.employeeData.currentEmployee;
+      const animal = this.$root.animalData.currentAnimal;
+      await axios.get(
+        serverUrl + "/employees/" + employee.id + "/feed/" + animal.id
+      );
+      updateZoo();
+      this.$root.animalData.currentAnimal.hunger = 100;
+    },
+    trainAnimal: async function(event) {
+      const employee = this.$root.employeeData.currentEmployee;
+      const animal = this.$root.animalData.currentAnimal;
+      const trick = this.$root.trickData.currentTrick.toLowerCase();
+      await axios.get(
+        serverUrl +
+          "/employees/" +
+          employee.id +
+          "/train/" +
+          trick +
+          "/" +
+          animal.id
+      );
+      updateZoo();
+    },
+    doSit: function(event) {
+      // use axios to train animal
+      // call updateZoo
+    },
+    doClap: function(event) {
+      // use axios to do the trick
+      // call updateZoo
+    },
+    doHop: function(event) {
+      // use axios to do the trick
+      // call updateZoo
     }
   }
 });
@@ -252,7 +330,15 @@ var app = new Vue({
       },
       currentFood: "Banana"
     },
-
+    trickData: {
+      title: "Tricks",
+      imgSources: {
+        Hop: "./assets/hop.png",
+        Clap: "./assets/clap.png",
+        Sit: "./assets/sit.png"
+      },
+      currentTrick: "Hop"
+    },
     zooSingleton: new ZOO("Zoo!")
   },
   components: {
@@ -275,6 +361,11 @@ var app = new Vue({
       const nextFood = this.zooSingleton.getNextFood(food);
       this.foodData.currentFood = nextFood;
     },
+    switchToNextTrick: function() {
+      const trick = this.trickData.currentTrick;
+      const nextTrick = this.zooSingleton.getNextTrick(trick);
+      this.trickData.currentTrick = nextTrick;
+    },
     switchToPreviousEmployee: function() {
       const employeeId = this.employeeData.currentEmployee.id;
       const previousEmployee = this.zooSingleton.getPreviousEmployee(
@@ -291,26 +382,18 @@ var app = new Vue({
       const food = this.foodData.currentFood;
       const previousFood = this.zooSingleton.getPreviousFood(food);
       this.foodData.currentFood = previousFood;
+    },
+    switchToPreviousTrick: function() {
+      const trick = this.trickData.currentTrick;
+      const previousTrick = this.zooSingleton.getPreviousTrick(trick);
+      this.trickData.currentTrick = previousTrick;
     }
   },
   mounted() {
-    initializeZoo();
+    updateZoo();
     setInterval(updateZoo, 30 * 1000);
   }
 });
-async function initializeZoo() {
-  try {
-    await updateZoo();
-    if (app.zooSingleton.getEmployees().length) {
-      app.employeeData.currentEmployee = app.zooSingleton.getEmployees()[0];
-    }
-    if (app.zooSingleton.getAnimals().length) {
-      app.animalData.currentAnimal = app.zooSingleton.getAnimals()[0];
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
 async function updateZoo() {
   try {
     const animalsResponse = await axios.get(serverUrl + "/animals");
@@ -322,6 +405,18 @@ async function updateZoo() {
     events = events.length > 20 ? events.splice(events.length - 20) : events;
     events.reverse();
     app.zooSingleton.setEvents(events);
+    if (
+      app.zooSingleton.getEmployees().length &&
+      !app.employeeData.currentEmployee.id
+    ) {
+      app.employeeData.currentEmployee = app.zooSingleton.getEmployees()[0];
+    }
+    if (
+      app.zooSingleton.getAnimals().length &&
+      !app.animalData.currentAnimal.id
+    ) {
+      app.animalData.currentAnimal = app.zooSingleton.getAnimals()[0];
+    }
   } catch (error) {
     console.error(error);
   }
