@@ -2,7 +2,7 @@
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-16" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
@@ -24,23 +24,23 @@
     <div id="app" class="container-fluid">
       <div class="row">
         <div class="col-12 text-center">
-          <h1>{{ zooTitle }}</h1>
+          <h1>{{ zooSingleton.name }}</h1>
         </div>
       </div>
       <div class="row">
         <div class="col-sm-12 col-md-3 text-center">
-          <zoo-box v-bind:title="employee"></zoo-box>
+          <zoo-box v-bind:data="employeeData"></zoo-box>
         </div>
         <div class="col-sm-12 col-md-6 text-center">
-          <zoo-box v-bind:title="animal"></zoo-box>
+          <zoo-box v-bind:data="animalData"></zoo-box>
         </div>
         <div class="col-sm-12 col-md-3 text-center">
-          <zoo-box v-bind:title="food"></zoo-box>
+          <zoo-box v-bind:data="foodData"></zoo-box>
         </div>
       </div>
       <div class="row">
         <div class="col-12 text-center">
-          <zoo-logs></zoo-logs>
+          <zoo-logs v-bind:events="zooSingleton.events"></zoo-logs>
         </div>
       </div>
     </div>
@@ -60,6 +60,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="src/js/script.js"></script>
   </body>
 </html>
